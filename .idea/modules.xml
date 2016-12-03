@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AndroidBoilerplateExample.iml" filepath="$PROJECT_DIR$/AndroidBoilerplateExample.iml" />
+      <module fileurl="file://$PROJECT_DIR$/androidboilerplate/androidboilerplate.iml" filepath="$PROJECT_DIR$/androidboilerplate/androidboilerplate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+    </modules>
+  </component>
+</project>
