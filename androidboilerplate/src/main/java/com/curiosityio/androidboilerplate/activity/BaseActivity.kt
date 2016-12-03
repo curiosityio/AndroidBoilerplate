@@ -2,16 +2,44 @@ package com.curiosityio.androidboilerplate.activity
 
 import android.app.Fragment
 import android.app.FragmentTransaction
-import android.content.ComponentName
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.support.v4.app.ActivityOptionsCompat
+import android.support.v4.util.Pair
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import android.support.v4.util.Pair
+import com.curiosityio.androidboilerplate.R
 
 abstract class BaseActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContentView(getLayoutId())
+
+        if (savedInstanceState == null) {
+            addFragment(getInitialFragment(), getFragmentContainerId())
+        }
+    }
+
+    open fun getLayoutId(): Int {
+        return R.layout.activity_base
+    }
+
+    open fun getFragmentContainerId(): Int {
+        return R.id.fragment_container
+    }
+
+    override fun setContentView(layoutResID: Int) {
+        if (layoutResID != getLayoutId()) {
+            throw RuntimeException("You cannot call setContentView() directly. Must override getLayoutId() and BaseActivity will call it for you.")
+        }
+
+        super.setContentView(layoutResID)
+    }
+
+    abstract fun getInitialFragment(): Fragment?
 
     override fun onBackPressed() {
         if (fragmentManager.backStackEntryCount > 0) {
