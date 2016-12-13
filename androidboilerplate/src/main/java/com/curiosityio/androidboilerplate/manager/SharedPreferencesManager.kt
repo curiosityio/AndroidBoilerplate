@@ -7,16 +7,24 @@ import android.preference.PreferenceManager
 open class SharedPreferencesManager() {
 
     companion object {
-        fun getString(context: Context, key: String): String? {
-            return getSharedPreferences(context).getString(key, null)
+        fun getString(context: Context, key: String, defaultValue: String? = null): String? {
+            return getSharedPreferences(context).getString(key, defaultValue)
         }
 
-        fun getBoolean(context: Context, key: String): Boolean {
-            return getSharedPreferences(context).getBoolean(key, false)
+        fun getBoolean(context: Context, key: String, defaultValue: Boolean = false): Boolean {
+            return getSharedPreferences(context).getBoolean(key, defaultValue)
         }
 
-        fun getInt(context: Context, key: String): Int {
-            return getSharedPreferences(context).getInt(key, Integer.MIN_VALUE)
+        fun getInt(context: Context, key: String, defaultValue: Int = Int.MIN_VALUE): Int {
+            return getSharedPreferences(context).getInt(key, defaultValue)
+        }
+
+        fun getFloat(context: Context, key: String, defaultValue: Float = Float.MIN_VALUE): Float {
+            return getSharedPreferences(context).getFloat(key, defaultValue)
+        }
+
+        fun getLong(context: Context, key: String, defaultValue: Long = Long.MIN_VALUE): Long {
+            return getSharedPreferences(context).getLong(key, defaultValue)
         }
 
         fun edit(context: Context): Editor {
