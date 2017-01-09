@@ -59,8 +59,12 @@ open class SharedPreferencesManager() {
             return this
         }
 
-        fun commit() {
-            editor.commit()
+        fun commit(): Boolean {
+            return editor.commit()
+        }
+
+        fun apply() {
+            editor.apply()
         }
     }
 
