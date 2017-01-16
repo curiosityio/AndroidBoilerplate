@@ -5,6 +5,12 @@ import android.animation.ObjectAnimator
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.animation.PropertyValuesHolder
 import android.view.View
+import android.opengl.ETC1.getWidth
+import android.view.ViewGroup
+import android.animation.AnimatorSet
+import com.curiosityio.androidboilerplate.util.AnimationUtil.AnimationEndListener
+
+
 
 
 open class AnimationUtil() {
@@ -97,6 +103,81 @@ open class AnimationUtil() {
 
             return animator
         }
+    }
+
+    // Scale can default to 1.5f. It's the magnitude of change you want. 2 will double the size of your view for example.
+    fun pulse(viewToAnimate: View, scale: Float, duration: Int): ObjectAnimator {
+        val scaleUpY = PropertyValuesHolder.ofFloat("scaleY", scale)
+        val scaleUpX = PropertyValuesHolder.ofFloat("scaleX", scale)
+
+        val scaleDownY = PropertyValuesHolder.ofFloat("scaleY", 1.0f)
+        val scaleDownX = PropertyValuesHolder.ofFloat("scaleX", 1.0f)
+
+        val animator = ObjectAnimator.ofPropertyValuesHolder(viewToAnimate, scaleUpY, scaleUpX)
+        animator.addListener(getAnimationEndListener(object : AnimationEndListener {
+            override fun onAnimationEnd(animator: Animator) {
+                ObjectAnimator.ofPropertyValuesHolder(viewToAnimate, scaleDownY, scaleDownX).setDuration((duration / 2).toLong()).start()
+            }
+        }))
+        animator.duration = (duration / 2).toLong()
+
+        return animator
+    }
+
+    private fun getPlayTogetherSet(duration: Int, vararg animators: ObjectAnimator): AnimatorSet {
+        val set = AnimatorSet()
+        set.playTogether(*animators)
+        set.duration = duration.toLong()
+
+        return set
+    }
+
+    fun shake(viewToAnimate: View, duration: Int): ObjectAnimator {
+        return ObjectAnimator.ofFloat(viewToAnimate, "translationX", 0.toFloat(), 25.toFloat(), -25.toFloat(), 25.toFloat(), -25.toFloat(), 15.toFloat(), -15.toFloat(), 6.toFloat(), -6.toFloat(), 0.toFloat()).setDuration(duration.toLong())
+    }
+
+    fun fadeOut(viewToAnimate: View, duration: Int): ObjectAnimator {
+        return ObjectAnimator.ofFloat(viewToAnimate, "alpha", 1.toFloat(), 0.toFloat()).setDuration(duration.toLong())
+    }
+
+    fun fadeIn(viewToAnimate: View, duration: Int): ObjectAnimator {
+        return ObjectAnimator.ofFloat(viewToAnimate, "alpha", 0.toFloat(), 1.toFloat()).setDuration(duration.toLong())
+    }
+
+    fun slideDownAndOut(viewToAnimate: View, duration: Int): AnimatorSet {
+        val parent = viewToAnimate.parent as ViewGroup
+        val distance = parent.height - viewToAnimate.top
+
+        return getPlayTogetherSet(duration,
+                ObjectAnimator.ofFloat(viewToAnimate, "alpha", 1.toFloat(), 0.toFloat()),
+                ObjectAnimator.ofFloat(viewToAnimate, "translationY", 0.toFloat(), distance.toFloat()))
+    }
+
+    fun slideInAndUp(viewToAnimate: View, duration: Int): AnimatorSet {
+        val parent = viewToAnimate.parent as ViewGroup
+        val distance = parent.height - viewToAnimate.top
+
+        return getPlayTogetherSet(duration,
+                ObjectAnimator.ofFloat(viewToAnimate, "alpha", 0.toFloat(), 1.toFloat()),
+                ObjectAnimator.ofFloat(viewToAnimate, "translationY", distance.toFloat(), 0.toFloat()))
+    }
+
+    fun slideOutToRight(viewToAnimate: View, duration: Int): AnimatorSet {
+        val parent = viewToAnimate.parent as ViewGroup
+        val distance = parent.width - viewToAnimate.left
+
+        return getPlayTogetherSet(duration,
+                ObjectAnimator.ofFloat(viewToAnimate, "alpha", 1.toFloat(), 0.toFloat()),
+                ObjectAnimator.ofFloat(viewToAnimate, "translationX", 0.toFloat(), distance.toFloat()))
+    }
+
+    fun slideInFromRight(viewToAnimate: View, duration: Int): AnimatorSet {
+        val parent = viewToAnimate.parent as ViewGroup
+        val distance = parent.width - viewToAnimate.left
+
+        return getPlayTogetherSet(duration,
+                ObjectAnimator.ofFloat(viewToAnimate, "alpha", 0.toFloat(), 1.toFloat()),
+                ObjectAnimator.ofFloat(viewToAnimate, "translationX", distance.toFloat(), 0.toFloat()))
     }
 
 }
