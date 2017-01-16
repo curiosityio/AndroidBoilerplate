@@ -7,6 +7,10 @@ import android.animation.PropertyValuesHolder
 import android.view.View
 import android.view.ViewGroup
 import android.animation.AnimatorSet
+import android.view.animation.Transformation
+import android.view.animation.Animation
+
+
 
 open class AnimationUtil() {
 
@@ -181,6 +185,53 @@ open class AnimationUtil() {
                 }
             }))
             slideOutDown.start()
+        }
+
+        fun expand(view: View, duration: Int) {
+            view.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            val targetHeight = view.measuredHeight
+
+            view.layoutParams.height = 1
+            view.visibility = View.VISIBLE
+            val animation = object : Animation() {
+                override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
+                    view.layoutParams.height = if (interpolatedTime == 1f) ViewGroup.LayoutParams.WRAP_CONTENT else (targetHeight * interpolatedTime).toInt()
+                    view.requestLayout()
+                }
+
+                override fun willChangeBounds(): Boolean {
+                    return true
+                }
+            }
+
+            // 1dp/ms
+            //animation.setDuration((int)(targetHeight / view.getContext().getResources().getDisplayMetrics().density));
+            animation.duration = duration.toLong()
+            view.startAnimation(animation)
+        }
+
+        fun collapse(view: View, duration: Int) {
+            val initialHeight = view.measuredHeight
+
+            val animation = object : Animation() {
+                override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
+                    if (interpolatedTime == 1f) {
+                        view.visibility = View.GONE
+                    } else {
+                        view.layoutParams.height = initialHeight - (initialHeight * interpolatedTime).toInt()
+                        view.requestLayout()
+                    }
+                }
+
+                override fun willChangeBounds(): Boolean {
+                    return true
+                }
+            }
+
+            // 1dp/ms
+            //animation.setDuration((int)(initialHeight / view.getContext().getResources().getDisplayMetrics().density));
+            animation.duration = duration.toLong()
+            view.startAnimation(animation)
         }
     }
 
