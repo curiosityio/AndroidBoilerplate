@@ -5,10 +5,8 @@ import android.animation.ObjectAnimator
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.animation.PropertyValuesHolder
 import android.view.View
-import android.opengl.ETC1.getWidth
 import android.view.ViewGroup
 import android.animation.AnimatorSet
-import com.curiosityio.androidboilerplate.util.AnimationUtil.AnimationEndListener
 
 open class AnimationUtil() {
 
@@ -156,6 +154,33 @@ open class AnimationUtil() {
             return getPlayTogetherSet(duration,
                     ObjectAnimator.ofFloat(viewToAnimate, "alpha", 0.toFloat(), 1.toFloat()),
                     ObjectAnimator.ofFloat(viewToAnimate, "translationX", distance.toFloat(), 0.toFloat()))
+        }
+
+        fun slideDownOutSlideInUpViews(exitView: View, enterView: View, duration: Int, animationStartListener: AnimationStartListener? = null,
+        animationEndListener: AnimationEndListener? = null) {
+            val slideOutDown = AnimationUtil.slideDownAndOut(exitView, duration)
+            slideOutDown.addListener(AnimationUtil.getAnimationStartAndEndListener(object : AnimationStartAndEndListener {
+                override fun onAnimationEnd(animator: Animator) {
+                    enterView.visibility = View.VISIBLE
+                    exitView.visibility = View.GONE
+
+                    val slideInUp = AnimationUtil.slideInAndUp(enterView, duration)
+                    slideInUp.addListener(AnimationUtil.getAnimationEndListener(object : AnimationUtil.AnimationEndListener {
+                        override fun onAnimationEnd(animator: Animator) {
+                            animationEndListener?.onAnimationEnd(animator)
+                        }
+                    }))
+                    slideInUp.start()
+                }
+
+                override fun onAnimationStart(animator: Animator) {
+                    enterView.visibility = View.GONE
+                    exitView.visibility = View.VISIBLE
+
+                    animationStartListener?.onAnimationStart(animator)
+                }
+            }))
+            slideOutDown.start()
         }
     }
 
