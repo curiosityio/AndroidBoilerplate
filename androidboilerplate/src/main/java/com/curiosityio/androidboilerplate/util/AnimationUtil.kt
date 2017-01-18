@@ -86,7 +86,7 @@ open class AnimationUtil() {
         }
 
         // Scale can default to 1.5f. It's the magnitude of change you want. 2 will double the size of your view for example.
-        fun pulse(viewToAnimate: View, scale: Float, duration: Int): ObjectAnimator {
+        fun pulse(viewToAnimate: View, scale: Float, duration: Int, animationEnd: (() -> Unit)? = null): ObjectAnimator {
             val scaleUpY = PropertyValuesHolder.ofFloat("scaleY", scale)
             val scaleUpX = PropertyValuesHolder.ofFloat("scaleX", scale)
 
@@ -96,7 +96,14 @@ open class AnimationUtil() {
             val animator = ObjectAnimator.ofPropertyValuesHolder(viewToAnimate, scaleUpY, scaleUpX)
             animator.addListener(getAnimationEndListener(object : AnimationEndListener {
                 override fun onAnimationEnd(animator: Animator) {
-                    ObjectAnimator.ofPropertyValuesHolder(viewToAnimate, scaleDownY, scaleDownX).setDuration((duration / 2).toLong()).start()
+                    val endAnimator = ObjectAnimator.ofPropertyValuesHolder(viewToAnimate, scaleDownY, scaleDownX).setDuration((duration / 2).toLong())
+                    endAnimator.addListener(getAnimationEndListener(object : AnimationEndListener {
+                        override fun onAnimationEnd(animator: Animator) {
+                            animationEnd?.invoke()
+                        }
+                    }))
+                    
+                    endAnimator.start()
                 }
             }))
             animator.duration = (duration / 2).toLong()
