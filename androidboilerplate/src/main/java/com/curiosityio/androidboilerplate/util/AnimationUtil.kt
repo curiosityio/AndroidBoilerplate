@@ -102,7 +102,7 @@ open class AnimationUtil() {
                             animationEnd?.invoke()
                         }
                     }))
-                    
+
                     endAnimator.start()
                 }
             }))

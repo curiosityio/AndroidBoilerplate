@@ -38,11 +38,7 @@ open class SharedPreferencesManager() {
 
     class Editor(val sharedPreferences: SharedPreferences) {
 
-        private var editor: SharedPreferences.Editor
-
-        init {
-            editor = sharedPreferences.edit()
-        }
+        private var editor: SharedPreferences.Editor = sharedPreferences.edit()
 
         fun setString(key: String, value: String?): Editor {
             if (value != null) editor.putString(key, value)
@@ -56,6 +52,16 @@ open class SharedPreferencesManager() {
 
         fun setInt(key: String, value: Int?): Editor {
             if (value != null) editor.putInt(key, value)
+            return this
+        }
+
+        fun setFloat(key: String, value: Float?): Editor {
+            if (value != null) editor.putFloat(key, value)
+            return this
+        }
+
+        fun setLong(key: String, value: Long?): Editor {
+            if (value != null) editor.putLong(key, value)
             return this
         }
 
