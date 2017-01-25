@@ -218,7 +218,7 @@ open class AnimationUtil() {
         }
 
         fun expandX(view: View, duration: Int) {
-            view.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            view.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             val targetWidth = view.measuredWidth
 
             view.layoutParams.width = 1
