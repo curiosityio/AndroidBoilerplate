@@ -217,29 +217,6 @@ open class AnimationUtil() {
             view.startAnimation(animation)
         }
 
-        fun expandX(view: View, duration: Int) {
-            view.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            val targetWidth = view.measuredWidth
-
-            view.layoutParams.width = 1
-            view.visibility = View.VISIBLE
-            val animation = object : Animation() {
-                override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
-                    view.layoutParams.width = if (interpolatedTime == 1f) ViewGroup.LayoutParams.WRAP_CONTENT else (targetWidth * interpolatedTime).toInt()
-                    view.requestLayout()
-                }
-
-                override fun willChangeBounds(): Boolean {
-                    return true
-                }
-            }
-
-            // 1dp/ms
-            //animation.setDuration((int)(targetWidth / view.getContext().getResources().getDisplayMetrics().density));
-            animation.duration = duration.toLong()
-            view.startAnimation(animation)
-        }
-
         fun collapseY(view: View, duration: Int) {
             val initialHeight = view.measuredHeight
 
@@ -260,30 +237,6 @@ open class AnimationUtil() {
 
             // 1dp/ms
             //animation.setDuration((int)(initialHeight / view.getContext().getResources().getDisplayMetrics().density));
-            animation.duration = duration.toLong()
-            view.startAnimation(animation)
-        }
-
-        fun collapseX(view: View, duration: Int) {
-            val initialWidth = view.measuredWidth
-
-            val animation = object : Animation() {
-                override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
-                    if (interpolatedTime == 1f) {
-                        view.visibility = View.GONE
-                    } else {
-                        view.layoutParams.width = initialWidth - (initialWidth * interpolatedTime).toInt()
-                        view.requestLayout()
-                    }
-                }
-
-                override fun willChangeBounds(): Boolean {
-                    return true
-                }
-            }
-
-            // 1dp/ms
-            //animation.setDuration((int)(initialWidth / view.getContext().getResources().getDisplayMetrics().density));
             animation.duration = duration.toLong()
             view.startAnimation(animation)
         }
