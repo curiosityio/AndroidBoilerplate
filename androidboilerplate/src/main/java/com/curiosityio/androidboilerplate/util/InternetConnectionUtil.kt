@@ -3,6 +3,9 @@ package com.curiosityio.androidboilerplate.util
 import android.content.Context
 import android.net.ConnectivityManager
 import android.provider.Settings
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 
 open class InternetConnectionUtil() {
 
@@ -51,6 +54,22 @@ open class InternetConnectionUtil() {
             val info = connectivityManager.activeNetworkInfo
 
             return info != null && info.isConnected && info.type == ConnectivityManager.TYPE_MOBILE
+        }
+
+        @Throws(IOException::class)
+        fun pingServer(context: Context): Boolean {
+            if (!isAnyInternetConnected(context)) return false
+
+            try {
+                val urlConnection = URL("http://clients3.google.com/generate_204").openConnection() as HttpURLConnection
+                urlConnection.setRequestProperty("User-Agent", "Android")
+                urlConnection.setRequestProperty("Connection", "close")
+                urlConnection.connectTimeout = 1500
+                urlConnection.connect()
+                return urlConnection.responseCode === 204 && urlConnection.contentLength === 0
+            } catch (e: IOException) {
+                throw e
+            }
         }
     }
 
