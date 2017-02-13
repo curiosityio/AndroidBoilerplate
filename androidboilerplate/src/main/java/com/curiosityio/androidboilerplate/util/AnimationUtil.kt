@@ -9,8 +9,8 @@ import android.view.ViewGroup
 import android.animation.AnimatorSet
 import android.view.animation.Transformation
 import android.view.animation.Animation
-
-
+import android.R.id
+import io.codetail.animation.ViewAnimationUtils
 
 open class AnimationUtil() {
 
@@ -239,6 +239,17 @@ open class AnimationUtil() {
             //animation.setDuration((int)(initialHeight / view.getContext().getResources().getDisplayMetrics().density));
             animation.duration = duration.toLong()
             view.startAnimation(animation)
+        }
+
+        // Note: In order to use this, you must wrap `view` in io.codetail.widget.RevealFrameLayout view.
+        fun circularRevealFromCenter(view: View): Animator {
+            val centerX = (view.left + view.right) / 2
+            val centerY = (view.top + view.bottom) / 2
+
+            val startRadius = 0
+            val endRadius = Math.max(view.width, view.height)
+
+            return ViewAnimationUtils.createCircularReveal(view, centerX, centerY, startRadius.toFloat(), endRadius.toFloat())
         }
     }
 
