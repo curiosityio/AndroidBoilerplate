@@ -10,7 +10,10 @@ import android.animation.AnimatorSet
 import android.view.animation.Transformation
 import android.view.animation.Animation
 import android.R.id
-import io.codetail.animation.ViewAnimationUtils
+import android.os.Build
+import android.view.ViewAnimationUtils
+import android.opengl.ETC1.getHeight
+import android.opengl.ETC1.getWidth
 
 open class AnimationUtil() {
 
@@ -241,15 +244,28 @@ open class AnimationUtil() {
             view.startAnimation(animation)
         }
 
-        // Note: In order to use this, you must wrap `view` in io.codetail.widget.RevealFrameLayout view.
-        fun circularRevealFromCenter(view: View): Animator {
-            val centerX = (view.left + view.right) / 2
-            val centerY = (view.top + view.bottom) / 2
+        // Note: This only runs on version 21 and above.
+        fun circularRevealFromCenter(view: View, duration: Int, preLollipopAnimator: (() -> Animator)? = null): Animator {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val centerX = (view.left + view.right) / 2
+                val centerY = (view.top + view.bottom) / 2
 
-            val startRadius = 0
-            val endRadius = Math.max(view.width, view.height)
+                val startRadius = 0.toFloat()
+                val dx = Math.max(centerX, view.width - centerX)
+                val dy = Math.max(centerY, view.height - centerY)
+                val finalRadius = Math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
 
-            return ViewAnimationUtils.createCircularReveal(view, centerX, centerY, startRadius.toFloat(), endRadius.toFloat())
+                val animator = ViewAnimationUtils.createCircularReveal(view, centerX, centerY, startRadius, finalRadius)
+                animator.duration = duration.toLong()
+
+                return animator
+            } else {
+                if (preLollipopAnimator != null) {
+                    return preLollipopAnimator.invoke()
+                } else {
+                    return fadeIn(view, duration)
+                }
+            }
         }
     }
 
