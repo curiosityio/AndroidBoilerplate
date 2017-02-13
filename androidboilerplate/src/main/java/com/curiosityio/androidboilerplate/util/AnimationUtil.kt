@@ -1,15 +1,12 @@
 package com.curiosityio.androidboilerplate.util
 
-import android.animation.Animator
-import android.animation.ObjectAnimator
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.animation.PropertyValuesHolder
 import android.view.View
 import android.view.ViewGroup
-import android.animation.AnimatorSet
 import android.view.animation.Transformation
 import android.view.animation.Animation
 import android.R.id
+import android.animation.*
 import android.os.Build
 import android.view.ViewAnimationUtils
 import android.opengl.ETC1.getHeight
@@ -247,15 +244,24 @@ open class AnimationUtil() {
         // Note: This only runs on version 21 and above.
         fun circularRevealFromCenter(view: View, duration: Int, preLollipopAnimator: (() -> Animator)? = null): Animator {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                val centerX = (view.left + view.right) / 2
-                val centerY = (view.top + view.bottom) / 2
+                val centerX = (view.width) / 2
+                val centerY = (view.height) / 2
 
                 val startRadius = 0.toFloat()
-                val dx = Math.max(centerX, view.width - centerX)
-                val dy = Math.max(centerY, view.height - centerY)
-                val finalRadius = Math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
+                val finalRadius = Math.max(view.width, view.height).toFloat()
 
                 val animator = ViewAnimationUtils.createCircularReveal(view, centerX, centerY, startRadius, finalRadius)
+                animator.addListener(object : Animator.AnimatorListener {
+                    override fun onAnimationRepeat(p0: Animator?) {
+                    }
+                    override fun onAnimationCancel(p0: Animator?) {
+                    }
+                    override fun onAnimationEnd(p0: Animator?) {
+                    }
+                    override fun onAnimationStart(p0: Animator?) {
+                        view.visibility = View.VISIBLE
+                    }
+                })
                 animator.duration = duration.toLong()
 
                 return animator
@@ -269,4 +275,15 @@ open class AnimationUtil() {
         }
     }
 
+}
+
+fun View.circularRevealFromCenter(duration: Int = 500, startDelay: Long = 0, interpolator: TimeInterpolator? = null) {
+    val animator = AnimationUtil.circularRevealFromCenter(this, duration)
+
+    animator.startDelay = startDelay
+    interpolator?.let { animator.interpolator = it }
+    
+    post({
+        animator.start()
+    })
 }
