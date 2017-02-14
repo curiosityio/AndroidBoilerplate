@@ -11,6 +11,9 @@ import android.os.Build
 import android.view.ViewAnimationUtils
 import android.opengl.ETC1.getHeight
 import android.opengl.ETC1.getWidth
+import android.animation.ObjectAnimator
+
+
 
 open class AnimationUtil() {
 
@@ -273,6 +276,15 @@ open class AnimationUtil() {
                 }
             }
         }
+
+        fun enterFromBottomScreen(view: View, duration: Long, startDelay: Long = 0, interpolator: TimeInterpolator? = null): ObjectAnimator {
+            val animator = ObjectAnimator.ofFloat(view, "translationY", 300.toFloat(), 0.toFloat())
+            animator.duration = duration
+            animator.startDelay = startDelay
+            animator.interpolator = interpolator
+
+            return animator
+        }
     }
 
 }
@@ -282,8 +294,14 @@ fun View.circularRevealFromCenter(duration: Int = 500, startDelay: Long = 0, int
 
     animator.startDelay = startDelay
     interpolator?.let { animator.interpolator = it }
-    
+
     post({
         animator.start()
+    })
+}
+
+fun View.enterFromBottomScreen(duration: Long = 500, startDelay: Long = 0, interpolator: TimeInterpolator? = null) {
+    post({
+        AnimationUtil.enterFromBottomScreen(this, duration, startDelay, interpolator).start()
     })
 }
