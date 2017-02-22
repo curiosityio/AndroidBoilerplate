@@ -8,26 +8,15 @@ import android.content.Context
 open class BuildUtil {
 
     companion object {
-        fun getVersionName(context: Context): String? {
-            var versionName: String? = null
 
-            try {
-                versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
-            } catch (e: PackageManager.NameNotFoundException) {
-            }
-
-            return versionName
+        @Throws(PackageManager.NameNotFoundException::class)
+        fun getVersionName(context: Context): String {
+            return context.packageManager.getPackageInfo(context.packageName, 0).versionName
         }
 
-        fun getVersionCode(context: Context): Int? {
-            var versionCode: Int? = null
-
-            try {
-                versionCode = context.packageManager.getPackageInfo(context.packageName, 0).versionCode
-            } catch (e: PackageManager.NameNotFoundException) {
-            }
-
-            return versionCode
+        @Throws(PackageManager.NameNotFoundException::class)
+        fun getVersionCode(context: Context): Int {
+            return context.packageManager.getPackageInfo(context.packageName, 0).versionCode
         }
 
         fun getApplicationName(context: Context): String {

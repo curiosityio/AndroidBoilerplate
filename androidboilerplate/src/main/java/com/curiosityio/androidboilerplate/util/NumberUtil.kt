@@ -3,15 +3,11 @@ package com.curiosityio.androidboilerplate.util
 import android.content.Context
 import android.util.DisplayMetrics
 import java.text.DecimalFormat
-
+import android.util.TypedValue
 
 open class NumberUtil {
 
     companion object {
-        fun dpToPx(context: Context, dp: Int): Int {
-            val displayMetrics = context.resources.displayMetrics
-            return Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT))
-        }
 
         fun getFormattedCount(count: Int): String {
             return getFormattedCount(java.lang.Long.valueOf(count.toLong()))

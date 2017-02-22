@@ -29,12 +29,45 @@ open class IntentUtil {
             return sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, text)
         }
 
+        // example on how to get result.
+        //    @Override
+        //    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //        super.onActivityResult(requestCode, resultCode, data);
+        //
+        //        switch(requestCode) {
+        //            case CHOOSE_PIC_CODE:
+        //                if (resultCode == Activity.RESULT_OK) {
+        //                    Uri selectedImage = data.getData();
+        //
+        //                    InputStream imageStream = null;
+        //                    try {
+        //                        imageStream = getActivity().getContentResolver().openInputStream(selectedImage);
+        //
+        //                        Bitmap yourImage = BitmapFactory.decodeStream(imageStream);
+        //                    } catch (FileNotFoundException e) {
+        //                        e.printStackTrace();
+        //                    }
+        //                }
+        //                break;
+        //        }
+        //    }
         fun getPictureFromGalleryIntent(): Intent {
             val photoPickerIntent = Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             photoPickerIntent.type = "image/*"
             return photoPickerIntent
         }
 
+        //    @Override
+        //    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //        super.onActivityResult(requestCode, resultCode, data);
+        //
+        //        switch(requestCode) {
+        //            case TAKE_PIC_CODE:
+        //                Bitmap photo = (Bitmap) data.getExtras().get("data");
+        //
+        //                break;
+        //        }
+        //    }
         fun getTakePictureIntent(): Intent {
             return Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
         }
