@@ -5,6 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
 import java.util.*
+import android.provider.MediaStore
+
+
 
 open class IntentUtil {
 
@@ -70,6 +73,35 @@ open class IntentUtil {
         //    }
         fun getTakePictureIntent(): Intent {
             return Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+        }
+
+//        override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+//            if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+//                val videoUri = intent!!.data
+//                mVideoView.setVideoURI(videoUri)
+//            }
+//        }
+        fun getTakeVideoIntent(): Intent {
+            return Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+        }
+
+        // example on how to get result.
+        //    @Override
+        //    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //        super.onActivityResult(requestCode, resultCode, data);
+        //
+        //        switch(requestCode) {
+        //            case CHOOSE_VIDEO_CODE:
+        //                if (resultCode == Activity.RESULT_OK) {
+        //                    Uri selectedVideo = data.getData();
+        //                }
+        //                break;
+        //        }
+        //    }
+        fun getVideoFromGalleryIntent(): Intent {
+            val videoPickerIntent = Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            videoPickerIntent.type = "video/*"
+            return videoPickerIntent
         }
 
         fun getAddEventCalendarIntent(title: String, description: String? = null, location: String? = null, email: String? = null): Intent {
