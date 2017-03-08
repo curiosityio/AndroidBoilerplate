@@ -8,6 +8,7 @@ import android.provider.CalendarContract
 import java.util.*
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
+import com.curiosityio.androidboilerplate.BuildConfig
 import com.curiosityio.androidboilerplate.util.UriUtil.Companion.getPrivateTakePhotoFile
 import com.curiosityio.androidboilerplate.util.UriUtil.Companion.getPublicGalleryTakePhotoFile
 
@@ -71,36 +72,35 @@ open class IntentUtil {
             if (takePictureIntent.resolveActivity(context.packageManager) != null) return takePictureIntent else return null
         }
 
+        open class FullSizePhotoIntent(val intent: Intent, val uri: Uri)
         // Note: You must provide a FileProvider in your manifest because we are using a FileProvider here.
         //
 //        <application>
 //          ...
-//          <provider
-//            android:name="android.support.v4.content.FileProvider"
-//            android:authorities="com.your.domain.fileprovider"
+//          <provider android:name="android.support.v4.content.FileProvider"
+//            android:authorities="${applicationId}.fileprovider"
 //            android:exported="false"
 //            android:grantUriPermissions="true">
-//              <meta-data
-//                android:name="android.support.FILE_PROVIDER_PATHS"
-//                android:resource="@xml/file_paths"></meta-data>
-//          </provider>
+//          <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+//            android:resource="@xml/provider_paths" />
 //          ...
 //        </application>
-        // `applicationId` argument, give the same value as in above: `com.your.domain`. Do not include .fileprovider
+        // `applicationId` argument, give: BuildConfig.APPLICATION_ID
         // Create a new file: res/xml/file_paths.xml and put inside:
 //        <?xml version="1.0" encoding="utf-8"?>
-//        <paths xmlns:android="http://schemas.android.com/apk/res/android">
-//          <external-path name="images" path="Android/data/com.example.package.name/files/Pictures" />
+//        <paths>
+//          <external-path name="external_files" path="." />
 //        </paths>
         // Make sure to replace `com.example.package.name` with your actual package name of your app.
         @Throws(RuntimeException::class)
-        fun getTakeFullSizePhotoSaveToPublicGalleryIntent(context: Context, applicationId: String): Intent? {
+        fun getTakeFullSizePhotoSaveToPublicGalleryIntent(context: Context, applicationId: String): FullSizePhotoIntent? {
             val intent = getTakeSmallBitmapPhotoIntent(context) ?: return null
             if (!PermissionUtil.isWriteExternalStoragePermissionGranted(context)) throw RuntimeException("You do not have permission to take a photo.")
 
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, "$applicationId.fileprovider", getPublicGalleryTakePhotoFile()))
+            val uri = FileProvider.getUriForFile(context, "$applicationId.fileprovider", getPublicGalleryTakePhotoFile())
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
 
-            return intent
+            return FullSizePhotoIntent(intent, uri)
         }
 
         // Note: Files saved in this directory are deleted when the app is uninstalled.
@@ -115,32 +115,29 @@ open class IntentUtil {
         //
 //        <application>
 //          ...
-//          <provider
-//            android:name="android.support.v4.content.FileProvider"
-//            android:authorities="com.your.domain.fileprovider"
+//          <provider android:name="android.support.v4.content.FileProvider"
+//            android:authorities="${applicationId}.fileprovider"
 //            android:exported="false"
 //            android:grantUriPermissions="true">
-//              <meta-data
-//                android:name="android.support.FILE_PROVIDER_PATHS"
-//                android:resource="@xml/file_paths"></meta-data>
-//          </provider>
+//          <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+//            android:resource="@xml/provider_paths" />
 //          ...
 //        </application>
-        // `applicationId` argument, give the same value as in above: `com.your.domain`. Do not include .fileprovider
+        // `applicationId` argument, give: BuildConfig.APPLICATION_ID
         // Create a new file: res/xml/file_paths.xml and put inside:
 //        <?xml version="1.0" encoding="utf-8"?>
-//        <paths xmlns:android="http://schemas.android.com/apk/res/android">
-//          <external-path name="images" path="Android/data/com.example.package.name/files/Pictures" />
+//        <paths>
+//          <external-path name="external_files" path="." />
 //        </paths>
-        // Make sure to replace `com.example.package.name` with your actual package name of your app.
         @Throws(RuntimeException::class)
-        fun getTakeFullSizePhotoSaveToPrivateAppDataIntent(context: Context, applicationId: String): Intent? {
+        fun getTakeFullSizePhotoSaveToPrivateAppDataIntent(context: Context, applicationId: String): FullSizePhotoIntent? {
             val intent = getTakeSmallBitmapPhotoIntent(context) ?: return null
             if (Build.VERSION.SDK_INT < 18 && !PermissionUtil.isWriteExternalStoragePermissionGranted(context)) throw RuntimeException("You do not have permission to take a photo.")
 
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, "$applicationId.fileprovider", getPrivateTakePhotoFile()))
+            val uri = FileProvider.getUriForFile(context, "$applicationId.fileprovider", getPrivateTakePhotoFile())
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
 
-            return intent
+            return FullSizePhotoIntent(intent, uri)
         }
 
         //        override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
