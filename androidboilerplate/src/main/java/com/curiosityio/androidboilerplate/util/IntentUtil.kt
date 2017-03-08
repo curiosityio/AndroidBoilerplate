@@ -86,7 +86,7 @@ open class IntentUtil {
 //          </provider>
 //          ...
 //        </application>
-        // Make sure that the `android:authorities` is the same value passed into `fileProvider` argument here. You probably do it with this: BuildConfig.APPLICATION_ID + ".provider"
+        // `applicationId` argument, give the same value as in above: `com.your.domain`. Do not include .fileprovider
         // Create a new file: res/xml/file_paths.xml and put inside:
 //        <?xml version="1.0" encoding="utf-8"?>
 //        <paths xmlns:android="http://schemas.android.com/apk/res/android">
@@ -94,11 +94,11 @@ open class IntentUtil {
 //        </paths>
         // Make sure to replace `com.example.package.name` with your actual package name of your app.
         @Throws(RuntimeException::class)
-        fun getTakeFullSizePhotoSaveToPublicGalleryIntent(context: Context, fileProvider: String): Intent? {
+        fun getTakeFullSizePhotoSaveToPublicGalleryIntent(context: Context, applicationId: String): Intent? {
             val intent = getTakeSmallBitmapPhotoIntent(context) ?: return null
             if (!PermissionUtil.isWriteExternalStoragePermissionGranted(context)) throw RuntimeException("You do not have permission to take a photo.")
 
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, fileProvider, getPublicGalleryTakePhotoFile()))
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, "$applicationId.fileprovider", getPublicGalleryTakePhotoFile()))
 
             return intent
         }
@@ -126,7 +126,7 @@ open class IntentUtil {
 //          </provider>
 //          ...
 //        </application>
-        // Make sure that the `android:authorities` is the same value passed into `fileProvider` argument here. You probably do it with this: BuildConfig.APPLICATION_ID + ".provider"
+        // `applicationId` argument, give the same value as in above: `com.your.domain`. Do not include .fileprovider
         // Create a new file: res/xml/file_paths.xml and put inside:
 //        <?xml version="1.0" encoding="utf-8"?>
 //        <paths xmlns:android="http://schemas.android.com/apk/res/android">
@@ -134,11 +134,11 @@ open class IntentUtil {
 //        </paths>
         // Make sure to replace `com.example.package.name` with your actual package name of your app.
         @Throws(RuntimeException::class)
-        fun getTakeFullSizePhotoSaveToPrivateAppDataIntent(context: Context, fileProvider: String): Intent? {
+        fun getTakeFullSizePhotoSaveToPrivateAppDataIntent(context: Context, applicationId: String): Intent? {
             val intent = getTakeSmallBitmapPhotoIntent(context) ?: return null
             if (Build.VERSION.SDK_INT < 18 && !PermissionUtil.isWriteExternalStoragePermissionGranted(context)) throw RuntimeException("You do not have permission to take a photo.")
 
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, fileProvider, getPrivateTakePhotoFile()))
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, "$applicationId.fileprovider", getPrivateTakePhotoFile()))
 
             return intent
         }
