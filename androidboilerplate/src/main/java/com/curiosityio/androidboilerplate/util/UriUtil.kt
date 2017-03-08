@@ -125,31 +125,31 @@ open class UriUtil {
             return File(uri.path)
         }
 
+        // NOTE: I am no longer using this code. This code is meant to get a pre-defined Uri to pass into the take photo with device camera intent. The camera *should* take this intent extra and save the image into that Uri you pass to it. However, the camera app *can* decide to ignore it and pass to you another Uri anyway. Therefore, let's have the camera app device and we resolve that.
+        //
         // DONT FORGET to turn String into a Content Provider to work with Nougat.
         // val intent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
         // intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", getFileFromUri(photoTakenUri))
-        @Throws(IOException::class)
-        fun getPathToTakePictureWith(): Uri {
-            val imageFileName = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val storageDir = Environment.getExternalStorageDirectory()
-            val image = File.createTempFile(imageFileName, ".jpg", storageDir)
+//        @Throws(IOException::class)
+//        fun getPathToTakePictureWith(): Uri {
+//            val imageFileName = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+//            val storageDir = Environment.getExternalStorageDirectory()
+//            val image = File.createTempFile(imageFileName, ".jpg", storageDir)
+//
+//            return Uri.parse(image.toString())
+//        }
 
-            return Uri.parse(image.toString())
-        }
 
-
-        // When choosing photos from gallery, the URI returned back to you may not be the correct one. This function finds you the full path to retrieve the image.
+        // When picking video/images from gallery or having device camera app take photo for you, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
         fun getFullPathForUri(context: Context, uri: Uri): Uri {
-            // try to retrieve the image from the media store first
-            // this will only work for images selected from gallery
-            val projection = arrayOf(MediaStore.Images.Media.DATA)
+            val projection = arrayOf(MediaStore.Images.Media.DATA, MediaStore.Video.Media.DATA)
             val cursor = context.contentResolver.query(uri, projection, null, null, null)
             if (cursor != null) {
-                val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                var columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+                if (columnIndex < 0) columnIndex = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
+
                 cursor.moveToFirst()
-
                 val result = Uri.parse(cursor.getString(columnIndex))
-
                 cursor.close()
 
                 return result
