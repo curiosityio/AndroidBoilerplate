@@ -3,10 +3,13 @@ package com.curiosityio.androidboilerplate.util
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.CalendarContract
 import java.util.*
 import android.provider.MediaStore
-
+import android.support.v4.content.FileProvider
+import com.curiosityio.androidboilerplate.util.UriUtil.Companion.getPrivateTakePhotoFile
+import com.curiosityio.androidboilerplate.util.UriUtil.Companion.getPublicGalleryTakePhotoFile
 
 
 open class IntentUtil {
@@ -60,29 +63,95 @@ open class IntentUtil {
             return photoPickerIntent
         }
 
-        //    @Override
-        //    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //        super.onActivityResult(requestCode, resultCode, data);
+        // Returns an Intent to use with startActivityForResult to get a small Bitmap from. Do not use if you want to capture the full size image.
         //
-        //        switch(requestCode) {
-        //            case TAKE_PIC_CODE:
-        //                Bitmap photo = (Bitmap) data.getExtras().get("data");
-        //
-        //                break;
-        //        }
-        //    }
-        fun getTakePictureIntent(): Intent {
-            return Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+        // in onActivityResult, call intent.getExtras().get("data") to get the Bitmap.
+        fun getTakeSmallBitmapPhotoIntent(context: Context): Intent? {
+            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            if (takePictureIntent.resolveActivity(context.packageManager) != null) return takePictureIntent else return null
         }
 
-//        override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-//            if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
-//                val videoUri = intent!!.data
-//                mVideoView.setVideoURI(videoUri)
-//            }
-//        }
-        fun getTakeVideoIntent(): Intent {
-            return Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+        // Note: You must provide a FileProvider in your manifest because we are using a FileProvider here.
+        //
+//        <application>
+//          ...
+//          <provider
+//            android:name="android.support.v4.content.FileProvider"
+//            android:authorities="com.your.domain.fileprovider"
+//            android:exported="false"
+//            android:grantUriPermissions="true">
+//              <meta-data
+//                android:name="android.support.FILE_PROVIDER_PATHS"
+//                android:resource="@xml/file_paths"></meta-data>
+//          </provider>
+//          ...
+//        </application>
+        // Make sure that the `android:authorities` is the same value passed into `fileProvider` argument here. You probably do it with this: BuildConfig.APPLICATION_ID + ".provider"
+        // Create a new file: res/xml/file_paths.xml and put inside:
+//        <?xml version="1.0" encoding="utf-8"?>
+//        <paths xmlns:android="http://schemas.android.com/apk/res/android">
+//          <external-path name="images" path="Android/data/com.example.package.name/files/Pictures" />
+//        </paths>
+        // Make sure to replace `com.example.package.name` with your actual package name of your app.
+        @Throws(RuntimeException::class)
+        fun getTakeFullSizePhotoSaveToPublicGalleryIntent(context: Context, fileProvider: String): Intent? {
+            val intent = getTakeSmallBitmapPhotoIntent(context) ?: return null
+            if (!PermissionUtil.isWriteExternalStoragePermissionGranted(context)) throw RuntimeException("You do not have permission to take a photo.")
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, fileProvider, getPublicGalleryTakePhotoFile()))
+
+            return intent
+        }
+
+        // Note: Files saved in this directory are deleted when the app is uninstalled.
+        // Note: We check if write external storage permission granted ONLY IF SDK is below 18. Declare this in your manifest if you target below 18.
+        // <manifest ...>
+        //   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        //                                                    android:maxSdkVersion="18" />
+        //   ...
+        // </manifest>
+        //
+        // Note: You must provide a FileProvider in your manifest because we are using a FileProvider here.
+        //
+//        <application>
+//          ...
+//          <provider
+//            android:name="android.support.v4.content.FileProvider"
+//            android:authorities="com.your.domain.fileprovider"
+//            android:exported="false"
+//            android:grantUriPermissions="true">
+//              <meta-data
+//                android:name="android.support.FILE_PROVIDER_PATHS"
+//                android:resource="@xml/file_paths"></meta-data>
+//          </provider>
+//          ...
+//        </application>
+        // Make sure that the `android:authorities` is the same value passed into `fileProvider` argument here. You probably do it with this: BuildConfig.APPLICATION_ID + ".provider"
+        // Create a new file: res/xml/file_paths.xml and put inside:
+//        <?xml version="1.0" encoding="utf-8"?>
+//        <paths xmlns:android="http://schemas.android.com/apk/res/android">
+//          <external-path name="images" path="Android/data/com.example.package.name/files/Pictures" />
+//        </paths>
+        // Make sure to replace `com.example.package.name` with your actual package name of your app.
+        @Throws(RuntimeException::class)
+        fun getTakeFullSizePhotoSaveToPrivateAppDataIntent(context: Context, fileProvider: String): Intent? {
+            val intent = getTakeSmallBitmapPhotoIntent(context) ?: return null
+            if (Build.VERSION.SDK_INT < 18 && !PermissionUtil.isWriteExternalStoragePermissionGranted(context)) throw RuntimeException("You do not have permission to take a photo.")
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, fileProvider, getPrivateTakePhotoFile()))
+
+            return intent
+        }
+
+        //        override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        //            if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+        //                val videoUri = intent!!.data
+        //                mVideoView.setVideoURI(videoUri)
+        //            }
+        //        }
+        fun getTakeVideoIntent(context: Context): Intent? {
+            val takeVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+            if (takeVideoIntent.resolveActivity(context.packageManager) != null) return takeVideoIntent else return null
         }
 
         // example on how to get result.

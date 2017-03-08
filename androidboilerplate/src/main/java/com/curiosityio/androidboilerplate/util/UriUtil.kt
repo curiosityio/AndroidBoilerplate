@@ -9,6 +9,10 @@ import java.io.*
 import java.util.*
 import android.provider.MediaStore
 import java.text.SimpleDateFormat
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.support.v4.content.FileProvider
 
 open class UriUtil {
 
@@ -125,20 +129,35 @@ open class UriUtil {
             return File(uri.path)
         }
 
-        // NOTE: I am no longer using this code. This code is meant to get a pre-defined Uri to pass into the take photo with device camera intent. The camera *should* take this intent extra and save the image into that Uri you pass to it. However, the camera app *can* decide to ignore it and pass to you another Uri anyway. Therefore, let's have the camera app device and we resolve that.
-        //
-        // DONT FORGET to turn String into a Content Provider to work with Nougat.
-        // val intent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
-        // intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", getFileFromUri(photoTakenUri))
-//        @Throws(IOException::class)
-//        fun getPathToTakePictureWith(): Uri {
-//            val imageFileName = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-//            val storageDir = Environment.getExternalStorageDirectory()
-//            val image = File.createTempFile(imageFileName, ".jpg", storageDir)
-//
-//            return Uri.parse(image.toString())
-//        }
+        // I recommend using IntentUtil to get Intent as you must use FileProvider to get the Intent after you obtain file here.
+        @Throws(IOException::class)
+        fun getPrivateTakePhotoFile(): File {
+            val imageFileName = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val storageDir = Environment.getExternalStorageDirectory()
+            val imageFile: File = File(storageDir, imageFileName + ".jpg")
 
+            if (imageFile.createNewFile()) {
+                return imageFile
+            } else {
+                // this should never happen...
+                throw RuntimeException("Error saving photo.")
+            }
+        }
+
+        // I recommend using IntentUtil to get Intent as you must use FileProvider to get the Intent after you obtain file here.
+        @Throws(IOException::class)
+        fun getPublicGalleryTakePhotoFile(): File {
+            val imageFileName = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            val imageFile: File = File(storageDir, imageFileName + ".jpg")
+
+            if (imageFile.createNewFile()) {
+                return imageFile
+            } else {
+                // this should never happen...
+                throw RuntimeException("Error saving photo.")
+            }
+        }
 
         // When picking video/images from gallery or having device camera app take photo for you, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
         fun getFullPathForUri(context: Context, uri: Uri): Uri {
