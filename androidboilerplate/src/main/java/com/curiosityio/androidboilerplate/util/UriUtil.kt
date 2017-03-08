@@ -148,11 +148,13 @@ open class UriUtil {
                 var columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
                 if (columnIndex < 0) columnIndex = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
 
-                cursor.moveToFirst()
-                val result = Uri.parse(cursor.getString(columnIndex))
-                cursor.close()
+                if (columnIndex > 0) {
+                    cursor.moveToFirst()
+                    val result = Uri.parse(cursor.getString(columnIndex))
+                    cursor.close()
 
-                return result
+                    return result
+                }
             }
             return uri
         }
