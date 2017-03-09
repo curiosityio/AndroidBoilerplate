@@ -160,12 +160,29 @@ open class UriUtil {
         }
 
         // When picking video/images from gallery or having device camera app take photo for you, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
-        fun getFullPathForUri(context: Context, uri: Uri): Uri {
-            val projection = arrayOf(MediaStore.Images.Media.DATA, MediaStore.Video.Media.DATA)
+        fun getImageFullPathForUri(context: Context, uri: Uri): Uri {
+            val projection = arrayOf(MediaStore.Images.Media.DATA)
             val cursor = context.contentResolver.query(uri, projection, null, null, null)
             if (cursor != null) {
-                var columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
-                if (columnIndex < 0) columnIndex = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
+                val columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+
+                if (columnIndex > 0) {
+                    cursor.moveToFirst()
+                    val result = Uri.parse(cursor.getString(columnIndex))
+                    cursor.close()
+
+                    return result
+                }
+            }
+            return uri
+        }
+
+        // When picking video/images from gallery or having device camera app take photo for you, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
+        fun getVideoFullPathForUri(context: Context, uri: Uri): Uri {
+            val projection = arrayOf(MediaStore.Video.Media.DATA)
+            val cursor = context.contentResolver.query(uri, projection, null, null, null)
+            if (cursor != null) {
+                val columnIndex = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
 
                 if (columnIndex > 0) {
                     cursor.moveToFirst()
