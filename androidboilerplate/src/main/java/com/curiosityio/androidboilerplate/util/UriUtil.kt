@@ -86,19 +86,12 @@ open class UriUtil {
         }
 
         @Throws(IOException::class)
-        fun resizeImageAndSaveToFile(image: Uri): Uri {
-            val resizedImageFile = resizeImageFileAndSaveToFile(getFileFromUri(image))
-
-            return Uri.parse(resizedImageFile.toString())
-        }
-
-        @Throws(IOException::class)
-        fun resizeImageFileAndSaveToFile(image: File): File {
-            val fileUri = Uri.fromFile(image)
-            val bitmap = getBitmapFromUri(fileUri)
+        fun resizeImageAndSaveToFile(context: Context, imageUri: Uri): Uri {
+            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
             val resizedBitmap = resize(bitmap)
+            val bitmapFile = createFileFromBitmap(resizedBitmap)
 
-            return createFileFromBitmap(resizedBitmap)
+            return Uri.parse(bitmapFile.toString())
         }
 
         fun resize(bitmap: Bitmap): Bitmap {
@@ -159,7 +152,7 @@ open class UriUtil {
             }
         }
 
-        // When picking video/images from gallery or having device camera app take photo for you, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
+        // When picking video/images from gallery, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
         fun getImageFullPathForUri(context: Context, uri: Uri): Uri {
             val projection = arrayOf(MediaStore.Images.Media.DATA)
             val cursor = context.contentResolver.query(uri, projection, null, null, null)
@@ -177,7 +170,7 @@ open class UriUtil {
             return uri
         }
 
-        // When picking video/images from gallery or having device camera app take photo for you, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
+        // When picking video/images from gallery, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
         fun getVideoFullPathForUri(context: Context, uri: Uri): Uri {
             val projection = arrayOf(MediaStore.Video.Media.DATA)
             val cursor = context.contentResolver.query(uri, projection, null, null, null)
