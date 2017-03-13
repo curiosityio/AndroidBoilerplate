@@ -1,5 +1,6 @@
 package com.curiosityio.androidboilerplate.util
 
+import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -11,7 +12,9 @@ import android.provider.MediaStore
 import java.text.SimpleDateFormat
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.os.Build
+import android.provider.DocumentsContract
 import android.support.v4.content.FileProvider
 
 open class UriUtil {
@@ -118,74 +121,99 @@ open class UriUtil {
             return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, false)
         }
 
-        fun getFileFromUri(uri: Uri): File {
+        // Take a Uri and get a File (with path, `file:///path/to/file`)
+        fun uriToFile(uri: Uri): File {
             return File(uri.path)
         }
 
-        // I recommend using IntentUtil to get Intent as you must use FileProvider to get the Intent after you obtain file here.
-        @Throws(IOException::class)
-        fun getPrivateTakePhotoFile(): File {
-            val imageFileName = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val storageDir = Environment.getExternalStorageDirectory()
-            val imageFile: File = File(storageDir, imageFileName + ".jpg")
-
-            if (imageFile.createNewFile()) {
-                return imageFile
-            } else {
-                // this should never happen...
-                throw RuntimeException("Error saving photo.")
-            }
+        fun uriToString(uri: Uri): String {
+            return uri.path
         }
 
-        // I recommend using IntentUtil to get Intent as you must use FileProvider to get the Intent after you obtain file here.
-        @Throws(IOException::class)
-        fun getPublicGalleryTakePhotoFile(): File {
-            val imageFileName = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val imageFile: File = File(storageDir, imageFileName + ".jpg")
-
-            if (imageFile.createNewFile()) {
-                return imageFile
-            } else {
-                // this should never happen...
-                throw RuntimeException("Error saving photo.")
-            }
+        fun stringPathToFile(path: String): File {
+            return File(path)
         }
 
-        // When picking video/images from gallery, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
-        fun getImageFullPathForUri(context: Context, uri: Uri): Uri {
-            val projection = arrayOf(MediaStore.Images.Media.DATA)
-            val cursor = context.contentResolver.query(uri, projection, null, null, null)
-            if (cursor != null) {
-                val columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+        fun stringPathToUri(path: String): Uri {
+            return Uri.fromFile(stringPathToFile(path))
+        }
 
-                if (columnIndex > 0) {
-                    cursor.moveToFirst()
-                    val result = Uri.parse(cursor.getString(columnIndex))
-                    cursor.close()
+        fun fileToUri(file: File): Uri {
+            return Uri.fromFile(file)
+        }
 
-                    return result
+        fun fileToString(file: File): String {
+            return file.toString()
+        }
+
+        // When you (1) Pick an image from the gallery (2) record a video via video intent (3) pick a video from the gallery BUT NOT when you take a photo via photo intent because you tell the intent where to save the photo. You will get back a content URI (`content://blah/blah/blah.mp4`) back in onActivityResult(). You want to convert this content URI into a file URI (`file:///full/path/to/blah/blah.mp4`) so that you can actually read the file, show it to the user, or upload it to a server.
+        // This code was found in https://github.com/hoolrory/AndroidVideoSamples. This is the most complete example I have seen that does all file types. Thank you!
+        fun contentUriToFilePath(context: Context, uri: Uri): String? {
+            val EXTERNAL_STORAGE_DOCUMENTS_PROVIDER = "com.android.externalstorage.documents"
+            val DOWNLOAD_DOCUMENTS_PROVIDER = "com.android.providers.downloads.documents"
+            val MEDIA_DOCUMENTS_PROVIDER = "com.android.providers.media.documents"
+
+            val PUBLIC_DOWNLOADS_CONTEXT_URI = "content://downloads/public_downloads"
+
+            val DATA_COLUMN = "_data"
+
+            val DOCUMENT_TYPE_AUDIO = "audio"
+            val DOCUMENT_TYPE_IMAGE = "image"
+            val DOCUMENT_TYPE_VIDEO = "video"
+            val DOCUMENT_TYPE_PRIMARY = "primary"
+
+            val URI_SCHEME_CONTENT = "content"
+            val URI_SCHEME_FILE = "file"
+
+            val authority = uri.authority
+            val scheme = uri.scheme
+
+            fun getColumn(context: Context, uri: Uri, column: String, selection: String?, selectionArgs: Array<String>?): String {
+                var path: String? = null
+                var cursor: Cursor? = null
+                try {
+                    cursor = context.contentResolver.query(uri, arrayOf(column), selection, selectionArgs, null)
+                    if (cursor != null && cursor.moveToFirst()) {
+                        val column_index = cursor.getColumnIndexOrThrow(column)
+                        path = cursor.getString(column_index)
+                    }
+                } finally {
+                    cursor?.let(Cursor::close)
                 }
+
+                return path!!
             }
-            return uri
-        }
 
-        // When picking video/images from gallery, use this to get the full path as the Uri path it gives you is not the actual path to the file on your device.
-        fun getVideoFullPathForUri(context: Context, uri: Uri): Uri {
-            val projection = arrayOf(MediaStore.Video.Media.DATA)
-            val cursor = context.contentResolver.query(uri, projection, null, null, null)
-            if (cursor != null) {
-                val columnIndex = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && DocumentsContract.isDocumentUri(context, uri)) {
+                val documentId = DocumentsContract.getDocumentId(uri)
+                val documentIdPieces = documentId.split(":".toRegex()).dropLastWhile(String::isEmpty).toTypedArray()
+                val documentType = documentIdPieces[0]
+                val documentPath = documentIdPieces[1]
 
-                if (columnIndex > 0) {
-                    cursor.moveToFirst()
-                    val result = Uri.parse(cursor.getString(columnIndex))
-                    cursor.close()
-
-                    return result
+                if (authority.equals(EXTERNAL_STORAGE_DOCUMENTS_PROVIDER, ignoreCase = true)) {
+                    if (documentType.equals(DOCUMENT_TYPE_PRIMARY, ignoreCase = true)) {
+                        return String.format(Locale.US, "%s/%s", Environment.getExternalStorageDirectory(), documentPath)
+                    }
+                } else if (authority.equals(DOWNLOAD_DOCUMENTS_PROVIDER, ignoreCase = true)) {
+                    val contentUri = ContentUris.withAppendedId(Uri.parse(PUBLIC_DOWNLOADS_CONTEXT_URI), java.lang.Long.valueOf(documentId)!!)
+                    return getColumn(context, contentUri, DATA_COLUMN, null, null)
+                } else if (authority.equals(MEDIA_DOCUMENTS_PROVIDER, ignoreCase = true)) {
+                    var contentUri: Uri? = null
+                    if (documentType.equals(DOCUMENT_TYPE_AUDIO, ignoreCase = true)) {
+                        contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    } else if (documentType.equals(DOCUMENT_TYPE_IMAGE, ignoreCase = true)) {
+                        contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    } else if (documentType.equals(DOCUMENT_TYPE_VIDEO, ignoreCase = true)) {
+                        contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    }
+                    return getColumn(context, contentUri!!, DATA_COLUMN, "_id=?", arrayOf(documentPath))
                 }
+            } else if (scheme.equals(URI_SCHEME_CONTENT, ignoreCase = true)) {
+                return getColumn(context, uri, DATA_COLUMN, null, null)
+            } else if (scheme.equals(URI_SCHEME_FILE, ignoreCase = true)) {
+                return uri.path
             }
-            return uri
+            return null
         }
     }
 

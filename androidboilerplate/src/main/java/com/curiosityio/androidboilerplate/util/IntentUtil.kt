@@ -9,9 +9,8 @@ import java.util.*
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import com.curiosityio.androidboilerplate.BuildConfig
-import com.curiosityio.androidboilerplate.util.UriUtil.Companion.getPrivateTakePhotoFile
-import com.curiosityio.androidboilerplate.util.UriUtil.Companion.getPublicGalleryTakePhotoFile
-
+import com.curiosityio.androidboilerplate.util.MediaUtil.Companion.getPrivateTakePhotoFile
+import com.curiosityio.androidboilerplate.util.MediaUtil.Companion.getPublicGalleryTakePhotoFile
 
 open class IntentUtil {
 
@@ -58,6 +57,7 @@ open class IntentUtil {
         //                break;
         //        }
         //    }
+        // NOTE: After you get selectedImage Uri, make sure to call UriUtil.contentUriToFilePath() to get the file path from this Uri.
         fun getPictureFromGalleryIntent(): Intent {
             val photoPickerIntent = Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             photoPickerIntent.type = "image/*"
@@ -85,13 +85,13 @@ open class IntentUtil {
 //            android:resource="@xml/provider_paths" />
 //          ...
 //        </application>
-        // `applicationId` argument, give: BuildConfig.APPLICATION_ID
         // Create a new file: res/xml/file_paths.xml and put inside:
 //        <?xml version="1.0" encoding="utf-8"?>
 //        <paths>
 //          <external-path name="external_files" path="." />
 //        </paths>
-        // Make sure to replace `com.example.package.name` with your actual package name of your app.
+        //
+        // for `applicationId` argument, send: BuildConfig.APPLICATION_ID for it.
         @Throws(RuntimeException::class)
         fun getTakeFullSizePhotoSaveToPublicGalleryIntent(context: Context, applicationId: String): FullSizePhotoIntent? {
             val intent = getTakeSmallBitmapPhotoIntent(context) ?: return null
@@ -146,6 +146,7 @@ open class IntentUtil {
         //                mVideoView.setVideoURI(videoUri)
         //            }
         //        }
+        // NOTE: After you get videoUri, make sure to call UriUtil.contentUriToFilePath() to get the file path from this Uri.
         fun getTakeVideoIntent(context: Context): Intent? {
             val takeVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
             if (takeVideoIntent.resolveActivity(context.packageManager) != null) return takeVideoIntent else return null
@@ -164,6 +165,7 @@ open class IntentUtil {
         //                break;
         //        }
         //    }
+        // NOTE: After you get selectedVideo URI, make sure to call UriUtil.contentUriToFilePath() to get the file path from this Uri.
         fun getVideoFromGalleryIntent(): Intent {
             val videoPickerIntent = Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             videoPickerIntent.type = "video/*"
