@@ -135,7 +135,7 @@ open class UriUtil {
         }
 
         fun stringPathToUri(path: String): Uri {
-            return Uri.fromFile(stringPathToFile(path))
+            return Uri.parse(path)
         }
 
         fun fileToUri(file: File): Uri {
