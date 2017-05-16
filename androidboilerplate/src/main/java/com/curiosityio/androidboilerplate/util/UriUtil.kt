@@ -9,13 +9,9 @@ import android.os.Environment
 import java.io.*
 import java.util.*
 import android.provider.MediaStore
-import java.text.SimpleDateFormat
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.database.Cursor
 import android.os.Build
 import android.provider.DocumentsContract
-import android.support.v4.content.FileProvider
 
 open class UriUtil {
 
@@ -26,16 +22,26 @@ open class UriUtil {
         }
 
         @Throws(IOException::class)
-        fun createFileFromInputStream(inputStream: InputStream?): File {
+        fun createDocumentFileFromInputStream(inputStream: InputStream?, fileExtension: String): File {
+            return createFileFromInputStream(inputStream, fileExtension, "documents")
+        }
+
+        @Throws(IOException::class)
+        fun createImageFileFromInputStream(inputStream: InputStream?): File {
+            return createFileFromInputStream(inputStream, ".png", "images")
+        }
+
+        @Throws(IOException::class)
+        private fun createFileFromInputStream(inputStream: InputStream?, fileExtension: String, directoryName: String): File {
             if (android.os.Environment.getExternalStorageState() == android.os.Environment.MEDIA_MOUNTED) {
                 var outputStream: OutputStream? = null
                 try {
-                    val filePath = File(Environment.getExternalStorageDirectory().absolutePath + "/images")
+                    val filePath = File(Environment.getExternalStorageDirectory().absolutePath + "/" + directoryName)
                     if (!filePath.exists()) {
                         filePath.mkdirs()
                     }
 
-                    val file = File(filePath, UUID.randomUUID().toString() + ".png")
+                    val file = File(filePath, UUID.randomUUID().toString() + fileExtension)
                     file.createNewFile()
 
                     outputStream = FileOutputStream(file)
@@ -60,12 +66,12 @@ open class UriUtil {
                     }
                 }
             } else {
-                throw IOException("Cannot save image. Your SD card is not available.")
+                throw IOException("Cannot save file. Your SD card is not available.")
             }
         }
 
         @Throws(IOException::class)
-        fun createFileFromBitmap(image: Bitmap): File {
+        fun createImageFileFromBitmap(image: Bitmap): File {
             if (android.os.Environment.getExternalStorageState() == android.os.Environment.MEDIA_MOUNTED) {
                 val filePath = File(Environment.getExternalStorageDirectory().absolutePath + "/images")
                 if (!filePath.exists()) {
@@ -92,7 +98,7 @@ open class UriUtil {
         fun resizeImageAndSaveToFile(context: Context, imageUri: Uri): Uri {
             val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
             val resizedBitmap = resize(bitmap)
-            val bitmapFile = createFileFromBitmap(resizedBitmap)
+            val bitmapFile = createImageFileFromBitmap(resizedBitmap)
 
             return Uri.parse(bitmapFile.toString())
         }
@@ -135,6 +141,10 @@ open class UriUtil {
         }
 
         fun stringPathToUri(path: String): Uri {
+            return Uri.parse(path)
+        }
+
+        fun remotePathToUri(path: String): Uri {
             return Uri.parse(path)
         }
 
