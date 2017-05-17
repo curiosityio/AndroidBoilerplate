@@ -139,6 +139,18 @@ open class UriUtil {
         fun stringPathToFile(path: String): File {
             return File(path)
         }
+        
+        fun fileAbsolutePathToUri(absolutePath: String): Uri {
+            if (absolutePath.length >= 8 && absolutePath.startsWith("file:///")) {
+                return Uri.parse(absolutePath)
+            } else {
+                if (absolutePath.substring(1) == "/") {
+                    return Uri.parse("file://$absolutePath")
+                } else {
+                    return Uri.parse("file:///$absolutePath")
+                }
+            }
+        }
 
         fun stringPathToUri(path: String): Uri {
             return Uri.parse(path)
