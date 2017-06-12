@@ -12,8 +12,6 @@ import android.provider.MediaStore
 import android.database.Cursor
 import android.os.Build
 import android.provider.DocumentsContract
-import com.svenkapudija.imageresizer.ImageResizer
-import com.svenkapudija.imageresizer.operations.ResizeMode
 
 open class UriUtil {
 
@@ -96,16 +94,50 @@ open class UriUtil {
             }
         }
 
+        fun getHeightWidthFromBitmap(imageUri: Uri): Array<Int> {
+            val options = BitmapFactory.Options()
+            options.inJustDecodeBounds = true
+            BitmapFactory.decodeFile(File(imageUri.path).absolutePath, options)
+            val imageHeight = options.outHeight
+            val imageWidth = options.outWidth
+
+            return arrayOf(imageHeight, imageWidth)
+        }
+
+        // Special resizing function that does not load bitmaps into memory to be more memory efficient to avoid outofmemory exceptions.
+        // Thank you https://stackoverflow.com/a/3549021/1486374
         @Throws(IOException::class)
         fun resizeImageAndSaveToFile(context: Context, imageUri: Uri): Uri {
-            return Uri.parse(ImageResizer.resize(uriToFile(imageUri), 1690, 1690, ResizeMode.AUTOMATIC).toString())
+            val IMAGE_MAX_SIZE = 1690
+
+            val bitmapOptions = BitmapFactory.Options()
+            bitmapOptions.inJustDecodeBounds = true
+
+            var inputStream = FileInputStream(uriToFile(imageUri))
+            BitmapFactory.decodeStream(inputStream, null, bitmapOptions)
+            inputStream.close()
+
+            var scale = 1
+            if (bitmapOptions.outHeight > IMAGE_MAX_SIZE || bitmapOptions.outWidth > IMAGE_MAX_SIZE) {
+                scale = Math.pow(2.0, Math.ceil(Math.log(IMAGE_MAX_SIZE / Math.max(bitmapOptions.outHeight, bitmapOptions.outWidth).toDouble()) / Math.log(0.5)).toInt().toDouble()).toInt()
+            }
+
+            val bitmapOptionsForSize = BitmapFactory.Options()
+            bitmapOptionsForSize.inSampleSize = scale
+            inputStream = FileInputStream(uriToFile(imageUri))
+            val resizedBitmap: Bitmap = BitmapFactory.decodeStream(inputStream, null, bitmapOptionsForSize)
+            inputStream.close()
+
+            return Uri.parse(resizedBitmap.toString())
         }
 
         fun resize(bitmap: Bitmap): Bitmap {
+            return resize(bitmap, bitmap.width, bitmap.height)
+        }
+
+        fun resize(bitmap: Bitmap, originalWidth: Int, originalHeight: Int): Bitmap {
             val scaleSize = 1690
 
-            val originalWidth = bitmap.width
-            val originalHeight = bitmap.height
             var newWidth = -1
             var newHeight = -1
             var multFactor = -1.0f
