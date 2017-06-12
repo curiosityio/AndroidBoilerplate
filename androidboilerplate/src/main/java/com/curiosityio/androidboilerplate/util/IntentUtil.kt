@@ -8,9 +8,15 @@ import android.provider.CalendarContract
 import java.util.*
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
+import android.webkit.MimeTypeMap
 import com.curiosityio.androidboilerplate.BuildConfig
+import com.curiosityio.androidboilerplate.extensions.getFileExtensionWithoutDot
 import com.curiosityio.androidboilerplate.util.MediaUtil.Companion.getPrivateTakePhotoFile
 import com.curiosityio.androidboilerplate.util.MediaUtil.Companion.getPublicGalleryTakePhotoFile
+import java.io.File
+import android.R.attr.mimeType
+
+
 
 open class IntentUtil {
 
@@ -80,7 +86,7 @@ open class IntentUtil {
 //          <provider android:name="android.support.v4.content.FileProvider"
 //            android:authorities="${applicationId}.fileprovider"
 //            android:exported="false"
-//            android:grantUriPermissions="true">
+//            android:grantUriPermissions="true"/>
 //          <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
 //            android:resource="@xml/provider_paths" />
 //          ...
@@ -103,6 +109,40 @@ open class IntentUtil {
             return FullSizePhotoIntent(intent, uri)
         }
 
+        open class FileIntent(val intent: Intent, val fileProviderUri: Uri)
+        // Note: You must provide a FileProvider in your manifest because we are using a FileProvider here.
+        //
+//        <application>
+//          ...
+//          <provider android:name="android.support.v4.content.FileProvider"
+//            android:authorities="${applicationId}.fileprovider"
+//            android:exported="false"
+//            android:grantUriPermissions="true"/>
+//          <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+//            android:resource="@xml/provider_paths" />
+//          ...
+//        </application>
+        // Create a new file: res/xml/file_paths.xml and put inside:
+//        <?xml version="1.0" encoding="utf-8"?>
+//        <paths>
+//          <external-path name="external_files" path="." />
+//        </paths>
+        //
+        // for `applicationId` argument, send: BuildConfig.APPLICATION_ID for it.
+        @Throws(RuntimeException::class)
+        fun viewFileIntent(context: Context, applicationId: String, fileAbsolutePath: String): FileIntent? {
+            val mimeTypeMap = MimeTypeMap.getSingleton()
+            val intent = Intent(Intent.ACTION_VIEW)
+            val mimeType = mimeTypeMap.getMimeTypeFromExtension(fileAbsolutePath.getFileExtensionWithoutDot())
+            if (!PermissionUtil.isWriteExternalStoragePermissionGranted(context)) throw RuntimeException("You do not have permission to view file.")
+
+            val uri = FileProvider.getUriForFile(context, "$applicationId.fileprovider", UriUtil.stringPathToFile(fileAbsolutePath))
+            intent.setDataAndType(UriUtil.fileAbsolutePathToUri(fileAbsolutePath), mimeType)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK and Intent.FLAG_GRANT_READ_URI_PERMISSION
+
+            return FileIntent(intent, uri)
+        }
+
         // Note: Files saved in this directory are deleted when the app is uninstalled.
         // Note: We check if write external storage permission granted ONLY IF SDK is below 18. Declare this in your manifest if you target below 18.
         // <manifest ...>
@@ -118,7 +158,7 @@ open class IntentUtil {
 //          <provider android:name="android.support.v4.content.FileProvider"
 //            android:authorities="${applicationId}.fileprovider"
 //            android:exported="false"
-//            android:grantUriPermissions="true">
+//            android:grantUriPermissions="true"/>
 //          <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
 //            android:resource="@xml/provider_paths" />
 //          ...
