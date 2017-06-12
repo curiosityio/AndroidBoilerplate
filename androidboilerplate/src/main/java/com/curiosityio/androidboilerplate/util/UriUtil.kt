@@ -12,6 +12,8 @@ import android.provider.MediaStore
 import android.database.Cursor
 import android.os.Build
 import android.provider.DocumentsContract
+import com.svenkapudija.imageresizer.ImageResizer
+import com.svenkapudija.imageresizer.operations.ResizeMode
 
 open class UriUtil {
 
@@ -96,11 +98,7 @@ open class UriUtil {
 
         @Throws(IOException::class)
         fun resizeImageAndSaveToFile(context: Context, imageUri: Uri): Uri {
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, fileAbsolutePathToUri(uriToString(imageUri)))
-            val resizedBitmap = resize(bitmap)
-            val bitmapFile = createImageFileFromBitmap(resizedBitmap)
-
-            return Uri.parse(bitmapFile.toString())
+            return Uri.parse(ImageResizer.resize(uriToFile(imageUri), 1690, 1690, ResizeMode.AUTOMATIC).toString())
         }
 
         fun resize(bitmap: Bitmap): Bitmap {
