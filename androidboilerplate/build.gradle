@@ -33,6 +33,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:support-v4:25.3.1'
-    compile 'com.github.svenkapudija:Android-ImageResizer:bc6b3a5da1'
+    compile 'com.github.levibostian:Android-ImageResizer:f04d8284b4'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
