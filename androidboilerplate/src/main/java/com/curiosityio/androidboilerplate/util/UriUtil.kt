@@ -96,7 +96,7 @@ open class UriUtil {
 
         @Throws(IOException::class)
         fun resizeImageAndSaveToFile(context: Context, imageUri: Uri): Uri {
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, fileAbsolutePathToUri(uriToString(imageUri)))
             val resizedBitmap = resize(bitmap)
             val bitmapFile = createImageFileFromBitmap(resizedBitmap)
 
