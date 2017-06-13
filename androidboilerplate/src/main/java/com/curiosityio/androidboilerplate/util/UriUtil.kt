@@ -16,6 +16,7 @@ import android.provider.DocumentsContract
 open class UriUtil {
 
     companion object {
+
         fun getBitmapFromUri(uri: Uri): Bitmap {
             val image = File(uri.path)
             return BitmapFactory.decodeFile(image.absolutePath)
@@ -94,41 +95,13 @@ open class UriUtil {
             }
         }
 
-        fun getHeightWidthFromBitmap(imageUri: Uri): Array<Int> {
-            val options = BitmapFactory.Options()
-            options.inJustDecodeBounds = true
-            BitmapFactory.decodeFile(File(imageUri.path).absolutePath, options)
-            val imageHeight = options.outHeight
-            val imageWidth = options.outWidth
-
-            return arrayOf(imageHeight, imageWidth)
-        }
-
-        // Special resizing function that does not load bitmaps into memory to be more memory efficient to avoid outofmemory exceptions.
-        // Thank you https://stackoverflow.com/a/3549021/1486374
         @Throws(IOException::class)
-        fun resizeImageAndSaveToFile(context: Context, imageUri: Uri): Uri {
-            val IMAGE_MAX_SIZE = 1690
+        fun saveCapturedImageToFileInAppExternalStorage(context: Context, imageUri: Uri): Uri {
+            val inputStreamOfImage: InputStream = context.contentResolver.openInputStream(imageUri)
+            val imageFileUri = fileToUri(createImageFileFromInputStream(inputStreamOfImage))
+            inputStreamOfImage.close()
 
-            val bitmapOptions = BitmapFactory.Options()
-            bitmapOptions.inJustDecodeBounds = true
-
-            var inputStream = FileInputStream(uriToFile(imageUri))
-            BitmapFactory.decodeStream(inputStream, null, bitmapOptions)
-            inputStream.close()
-
-            var scale = 1
-            if (bitmapOptions.outHeight > IMAGE_MAX_SIZE || bitmapOptions.outWidth > IMAGE_MAX_SIZE) {
-                scale = Math.pow(2.0, Math.ceil(Math.log(IMAGE_MAX_SIZE / Math.max(bitmapOptions.outHeight, bitmapOptions.outWidth).toDouble()) / Math.log(0.5)).toInt().toDouble()).toInt()
-            }
-
-            val bitmapOptionsForSize = BitmapFactory.Options()
-            bitmapOptionsForSize.inSampleSize = scale
-            inputStream = FileInputStream(uriToFile(imageUri))
-            val resizedBitmap: Bitmap = BitmapFactory.decodeStream(inputStream, null, bitmapOptionsForSize)
-            inputStream.close()
-
-            return Uri.parse(resizedBitmap.toString())
+            return imageFileUri
         }
 
         fun resize(bitmap: Bitmap): Bitmap {
@@ -157,6 +130,10 @@ open class UriUtil {
             return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, false)
         }
 
+        fun inputStreamFromUri(context: Context, uri: Uri): InputStream? {
+            return context.contentResolver.openInputStream(uri)
+        }
+
         // Take a Uri and get a File (with path, `file:///path/to/file`)
         fun uriToFile(uri: Uri): File {
             return File(uri.path)
@@ -169,7 +146,7 @@ open class UriUtil {
         fun stringPathToFile(path: String): File {
             return File(path)
         }
-        
+
         fun fileAbsolutePathToUri(absolutePath: String): Uri {
             if (absolutePath.length >= 8 && absolutePath.startsWith("file:///")) {
                 return Uri.parse(absolutePath)
