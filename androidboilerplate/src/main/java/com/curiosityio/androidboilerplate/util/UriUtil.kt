@@ -97,7 +97,9 @@ open class UriUtil {
 
         @Throws(IOException::class)
         fun saveCapturedImageToFileInAppExternalStorage(context: Context, imageUri: Uri): Uri {
-            val inputStreamOfImage: InputStream = context.contentResolver.openInputStream(imageUri)
+            val absoluteFilePathStringUri = fileAbsolutePathToUri(uriToString(imageUri)) // imageUri might be of form: `/path/to/image` or `file:///path/to/image` where we need to assert it is always `file:///path/to/image`
+
+            val inputStreamOfImage: InputStream = context.contentResolver.openInputStream(absoluteFilePathStringUri)
             val imageFileUri = fileToUri(createImageFileFromInputStream(inputStreamOfImage))
             inputStreamOfImage.close()
 
