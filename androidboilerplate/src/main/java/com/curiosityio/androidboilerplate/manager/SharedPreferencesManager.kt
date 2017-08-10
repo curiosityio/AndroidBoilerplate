@@ -4,44 +4,44 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 
-open class SharedPreferencesManager() {
+open class SharedPreferencesManager {
 
     companion object {
-        fun getString(context: Context, key: String, defaultValue: String? = null): String? {
+        @JvmStatic fun getString(context: Context, key: String, defaultValue: String? = null): String? {
             return getSharedPreferences(context).getString(key, defaultValue)
         }
 
-        fun getBoolean(context: Context, key: String, defaultValue: Boolean = false): Boolean {
+        @JvmStatic fun getBoolean(context: Context, key: String, defaultValue: Boolean = false): Boolean {
             return getSharedPreferences(context).getBoolean(key, defaultValue)
         }
 
-        fun getInt(context: Context, key: String, defaultValue: Int = Int.MIN_VALUE): Int {
+        @JvmStatic fun getInt(context: Context, key: String, defaultValue: Int = Int.MIN_VALUE): Int {
             return getSharedPreferences(context).getInt(key, defaultValue)
         }
 
-        fun getFloat(context: Context, key: String, defaultValue: Float = Float.MIN_VALUE): Float {
+        @JvmStatic fun getFloat(context: Context, key: String, defaultValue: Float = Float.MIN_VALUE): Float {
             return getSharedPreferences(context).getFloat(key, defaultValue)
         }
 
-        fun getLong(context: Context, key: String, defaultValue: Long = Long.MIN_VALUE): Long {
+        @JvmStatic fun getLong(context: Context, key: String, defaultValue: Long = Long.MIN_VALUE): Long {
             return getSharedPreferences(context).getLong(key, defaultValue)
         }
 
-        fun edit(context: Context): Editor {
+        @JvmStatic fun edit(context: Context): Editor {
             return Editor(getSharedPreferences(context))
         }
 
-        private fun getSharedPreferences(context: Context): SharedPreferences {
+        @JvmStatic fun getSharedPreferences(context: Context): SharedPreferences {
             return PreferenceManager.getDefaultSharedPreferences(context)
         }
     }
 
     class Editor(val sharedPreferences: SharedPreferences) {
 
-        private var editor: SharedPreferences.Editor = sharedPreferences.edit()
+        var editor: SharedPreferences.Editor = sharedPreferences.edit()
 
         fun setString(key: String, value: String?): Editor {
-            if (value != null) editor.putString(key, value)
+            editor.putString(key, value)
             return this
         }
 
@@ -50,26 +50,26 @@ open class SharedPreferencesManager() {
             return this
         }
 
-        fun setInt(key: String, value: Int?): Editor {
-            if (value != null) editor.putInt(key, value)
+        fun setInt(key: String, value: Int): Editor {
+            editor.putInt(key, value)
             return this
         }
 
-        fun setFloat(key: String, value: Float?): Editor {
-            if (value != null) editor.putFloat(key, value)
+        fun setFloat(key: String, value: Float): Editor {
+            editor.putFloat(key, value)
             return this
         }
 
-        fun setLong(key: String, value: Long?): Editor {
-            if (value != null) editor.putLong(key, value)
+        fun setLong(key: String, value: Long): Editor {
+            editor.putLong(key, value)
             return this
         }
 
-        fun commit(): Boolean {
+        fun commitChangesNow(): Boolean {
             return editor.commit()
         }
 
-        fun apply() {
+        fun applyChangesSometime() {
             editor.apply()
         }
     }
